@@ -13,6 +13,7 @@ This is a console application that simulates the behavior of cells in a 2D space
 
 ## To-Do List
 
+- [ ] Agro Mutation: Allow cells to hunt and consume other cells to gain energy
 - [ ] Cell reproduction: Allow cells to reproduce by splitting into two new cells when their age reaches a certain threshold.
 - [ ] Cell fusion: Allow cells to reproduce by fusing with another cell when they collide.
 - [ ] Movement speed mutation: Allow cells to mutate to become faster or slower.
@@ -28,8 +29,3 @@ This is a console application that simulates the behavior of cells in a 2D space
 - [ ] Population dynamics: Keep track of the overall population size and allow it to fluctuate based on factors such as reproduction rate, death rate, and environmental conditions.
 - [ ] Graphical display: Create a graphical display of the simulation using a library like `System.Drawing` or a third-party library like SFML or SDL.
 This list uses the task list syntax of GitHub-flavored Markdown, which allows you to mark items as incomplete ([ ]) or complete ([x]). You can use this syntax to track your progress on implementing the various features and mutations for the CellSim program.
-
-
-
-
-Regenerate response
