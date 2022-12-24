@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Threading;
 
@@ -12,7 +13,8 @@ namespace CellSim
             Console.Clear();
             Console.CursorVisible = false;
             var _random = new Random();
-            int SleepTime = 5;
+            int SleepTime = 50;
+           
 
             var cells = new List<Cell>();
 
@@ -21,14 +23,15 @@ namespace CellSim
             for (int i = 0; i < 10; i++)
             {
                 var cell = new Cell();
+                cell.Id = cellCounter;
                 cell.CellForm = _random.Next(0, 2) == 0 ? "x" : "o";
                 cell.X = _random.Next(0, 101);
                 cell.Y = _random.Next(0, 101);
                 cell.Mutations.Add(new Mutation { MovementBias = (MovementBias)_random.Next(1, 5) });
+                cell.CellColor = (ConsoleColor)_random.Next(1, 16);
                 cells.Add(cell);
                 cellCounter++;
             }
-            
 
             while (true)
             {
@@ -40,6 +43,17 @@ namespace CellSim
                 foreach (var cell in cells)
                 {
                     //if the cell age is greater than 10, it has a 10% chance of mutating
+                    if (cell.Age > 10 && _random.Next(0, 100) < 10)
+                    {
+                        cell.Mutations.Add(new Mutation { MovementBias = (MovementBias)_random.Next(1, 5) });
+                    }
+                    
+                    //cells age > 100 have a 1% chance of dying
+                    // if (cell.Age > 100 && _random.Next(0, 1000) < 1)
+                    // {
+                    //     cell.IsAlive = false;
+                    // }
+
                     cell.MoveRandomly();
                     cell.Age++;
                 }
@@ -54,22 +68,20 @@ namespace CellSim
                 {
                     for (int j = i + 1; j < cells.Count; j++)
                     {
-                        //check if the cells StepsSinceLastCollision is > 9
-                        if (cells[i].StepsSinceLastCollision > 9 && cells[j].StepsSinceLastCollision > 9 && cells[i].IsAlive && cells[j].IsAlive)
+                        //check if the cells StepsSinceLastCollision is > 100 
+                        if (cells[i].StepsSinceLastCollision > 99 && cells[j].StepsSinceLastCollision > 99 && cells[i].IsAlive && cells[j].IsAlive)
                         {
                             if (cells[i].X == cells[j].X && cells[i].Y == cells[j].Y)
                             {
-                                
-                                
-                                //clear the cell from the screen
+                                //clear the dead cell from the screen
                                 Console.SetCursorPosition(cells[i].X % Console.BufferWidth, cells[i].Y % Console.BufferHeight);
                                 Console.Write(" ");
                                 cells[i].IsAlive = false;
                                 cells[j].IsAlive = false;
                                 // Cells have collided, create 4 new cells
-                                for (int k = 0; k < 10; k++)
+                                for (int k = 0; k < 4; k++)
                                 {
-                                    SleepTime = 500;
+                                    SleepTime = SleepTime++;
                                     // Console.WriteLine("--------------------------------------------");
                                     var newCell = new Cell();
                                     newCell.CellForm = _random.Next(0, 2) == 0 ? "z" : "y";
@@ -79,7 +91,18 @@ namespace CellSim
                                     newCell.Y = cells[i].Y + (int)Math.Round(Math.Sin((k / 10.0) * 2 * Math.PI) * 3);
                                     newCell.Mutations.Add(new Mutation { MovementBias = (MovementBias)_random.Next(1, 5) });
                                     newCell.StepsSinceLastCollision = 0;
+                                    newCell.CellColor = (ConsoleColor)_random.Next(1, 16);
+                                    newCell.Age = 0;
+                                    newCell.IsAlive = true;
                                     cells.Add(newCell);
+                                    
+                                    //draw the new cell
+                                    if (cells[i].X % Console.BufferWidth >= 0 && cells[i].X % Console.BufferWidth < Console.BufferWidth)
+                                    {
+                                        Console.SetCursorPosition(cells[i].X % Console.BufferWidth, cells[i].Y % Console.BufferHeight);
+                                        Console.Write(newCell.CellForm);
+                                    }
+                                    
                                     cellCounter++;
                                 }
                             }
@@ -87,7 +110,6 @@ namespace CellSim
                     }
                 }
 
-                
                 Thread.Sleep(SleepTime);
             }
         }
@@ -105,7 +127,8 @@ namespace CellSim
             StepsSinceLastCollision = 0;
             Trail = new List<(int X, int Y)>();
         }
-
+        
+        public int Id { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
         public bool IsAlive { get; set; }
@@ -114,6 +137,8 @@ namespace CellSim
         public List<(int X, int Y)> Trail { get; set; }
         public int StepsSinceLastCollision { get; set; }
         public int Age { get; set; }
+        int collisonPeriode = 100;
+        public ConsoleColor CellColor { get; set; }
 
         public void Mutate()
         {
@@ -127,7 +152,7 @@ namespace CellSim
 
         public void MoveRandomly()
         {
-            if (StepsSinceLastCollision < 10)
+            if (StepsSinceLastCollision < collisonPeriode)
             {
                 StepsSinceLastCollision++;
                 return;
@@ -153,28 +178,25 @@ namespace CellSim
             if (_random.Next(0, 100) < 51)
             {
                 // Use bias 51% of the time
-                switch (bias)
+                switch (Mutations.First().MovementBias)
                 {
                     case MovementBias.North:
-                        yMovement = -1;
+                        Y = Math.Max(0, Y - 1);
                         break;
                     case MovementBias.South:
-                        yMovement = 1;
+                        Y = Math.Min(Console.BufferHeight - 11, Y + 1);
                         break;
                     case MovementBias.East:
-                        xMovement = 1;
+                        X = Math.Max(0, X - 1);
                         break;
                     case MovementBias.West:
-                        xMovement = -1;
-                        break;
-                    default:
-// No bias
+                        X = Math.Min(Console.BufferWidth - 1, X + 1);
                         break;
                 }
             }
             else
             {
-// Move randomly 49% of the time
+                // Move randomly 49% of the time
                 xMovement = _random.Next(-1, 2);
                 yMovement = _random.Next(-1, 2);
             }
@@ -188,21 +210,29 @@ namespace CellSim
             Trail.Add((X, Y));
 
             // Keep the trail at a maximum of 10 positions long
-            if (Trail.Count > 10)
+            if (Trail.Count > 40)
             {
                 Trail.RemoveAt(0);
             }
 
+            var bh = Console.BufferHeight - 10;
+            
+            if(bh < 0)
+            {
+                bh = 0;
+            }
+            
             // Draw the trail
             foreach (var (x, y) in Trail)
             {
-                Console.SetCursorPosition(x, y % Console.BufferHeight);
-                Console.ForegroundColor = (ConsoleColor)_random.Next(1, 16);
+                Console.SetCursorPosition(x, (y + bh) % bh);
+                Console.ForegroundColor = CellColor;
+                // console.ForegroundColor = (consoleColor)_random.Next(1, 16);
                 Console.Write(".");
             }
-            
+    
             // Clear current cell position
-            Console.SetCursorPosition(X, Y % Console.BufferHeight);
+            Console.SetCursorPosition(X, (Y + bh) % bh);
             Console.Write(" ");
             // Add current position to trail
             Trail.Add((X, Y));
@@ -211,22 +241,96 @@ namespace CellSim
             if (Trail.Count > 10)
             {
                 var (x, y) = Trail[0];
-                Console.SetCursorPosition(x, y % Console.BufferHeight);
+                Console.SetCursorPosition(x, (y + bh) % bh);
                 Console.Write(" ");
                 Trail.RemoveAt(0);
             }
 
             // Draw new cell position
-            Console.SetCursorPosition(X, Y % Console.BufferHeight);
-            Console.ForegroundColor = (ConsoleColor)_random.Next(1, 16);
+            Console.SetCursorPosition(X, (Y + bh) % bh);
+            Console.ForegroundColor = CellColor;
+    
+            Console.Write(CellForm);
+            string msg = $"{DateTime.Now}: Cell {this.Id}" +
+                         $": {this.CellForm}" +
+                         $": {this.CellColor}" +
+                         $"X{this.X}" +
+                         $"Y{this.Y}" +
+                         $" Age: {this.Age}" +
+                         $" IsAlive: {this.IsAlive} - " +
+                         $"MovementBias: {this.Mutations.Last().MovementBias};";
+            //log the cell position withthe Log fucntion
+            Log(msg, this);
             
-            Console.Write(CellForm);
-            // Set a random color for the cell
-            Console.ForegroundColor = (ConsoleColor)_random.Next(1, 16);
+        }
 
-            // Draw new cell position
-            Console.SetCursorPosition(X, Y % Console.BufferHeight);
-            Console.Write(CellForm);
+        private string[] _logMessages = new string[10];
+
+        private void Log(string message, Cell c)
+        {
+            // Set the cursor position based on the cell ID
+            int row = 0;
+            switch (this.Id)
+            {
+                case 1:
+                    row = Console.BufferHeight - 10;
+                    _logMessages[0] = message;
+                    break;
+                case 2:
+                    row = Console.BufferHeight - 9;
+                    _logMessages[1] = message;
+                    break;
+                case 3:
+                    row = Console.BufferHeight - 8;
+                    _logMessages[2] = message;
+                    break;                 
+                case 4:
+                    row = Console.BufferHeight - 7;
+                    _logMessages[3] = message;
+                    break;
+                case 5:
+                    row = Console.BufferHeight - 6;
+                    _logMessages[4] = message;
+                    break;
+                case 6:
+                    row = Console.BufferHeight - 5;
+                    _logMessages[5] = message;
+                    break;
+                case 7 :
+                    row = Console.BufferHeight - 4;
+                    _logMessages[6] = message;
+                    break;
+                case 8:
+                    row = Console.BufferHeight - 3;
+                    _logMessages[7] = message;
+                    break;
+                case 9:
+                    row = Console.BufferHeight - 2;
+                    _logMessages[8] = message;
+                    break;
+                case 10:
+                    row = Console.BufferHeight - 1;
+                    _logMessages[9] = message;
+                    break;
+                default:
+                    row = Console.BufferHeight - 0;
+                    break;
+            }
+    
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            // Add the message to the list of log messages
+          
+            
+            Console.SetCursorPosition(0, Console.BufferHeight - 10);
+            //Console.Write(new string(' ', Console.BufferWidth * 10));
+            // Write the log messages
+            for (int i = 0; i < 10; i++)
+            {
+                // Wrap the row around the console's buffer size
+                int wrappedRow = (Console.BufferHeight - 10 + i) % Console.BufferHeight;
+                Console.SetCursorPosition(0, wrappedRow);
+                Console.Write(_logMessages[i]);
+            }
         }
     }
 
