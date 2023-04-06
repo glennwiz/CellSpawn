@@ -91,19 +91,19 @@ namespace CellSim
 
         private static void ClearTheDeadCollidingCells(List<Cell> cells, int i, int j)
         {
-            Console.SetCursorPosition(cells[i].X % Console.BufferWidth,
-                cells[i].Y % Console.BufferHeight);
-            Console.Write(" ");
+            Console.SetCursorPosition(cells[i].X % Console.BufferWidth, cells[i].Y % Console.BufferHeight);
+            Console.Write("$");
             cells[i].IsAlive = false;
             cells[j].IsAlive = false;
         }
 
         private static void DrawNewCell(List<Cell> cells, int i, Cell newCell)
         {
+            var bh = Console.BufferHeight - 11;
             if (cells[i].X % Console.BufferWidth >= 0 && cells[i].X % Console.BufferWidth < Console.BufferWidth)
             {
                 Console.SetCursorPosition(cells[i].X % Console.BufferWidth,
-                    cells[i].Y % Console.BufferHeight);
+                    cells[i].Y % bh);
                 Console.Write(newCell.CellForm);
             }
         }

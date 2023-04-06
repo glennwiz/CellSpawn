@@ -8,7 +8,7 @@ namespace CellSim
 {
     public class Cell
     {
-         readonly public static string[] alphabet =
+         public static readonly string[] alphabet =
             {
                 "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u",
                 "v", "w", "x", "y", "z"
@@ -50,18 +50,27 @@ namespace CellSim
 
         public void MoveRandomly()
         {
-            if (StepsSinceLastCollision < collisonPeriode)
-            {
-                StepsSinceLastCollision++;
-                return;
-            }
+            StepsSinceLastCollision++;
 
             // Clear current cell position
             Console.SetCursorPosition(X % Console.BufferWidth, Y % Console.BufferHeight);
             Console.Write(" ");
 
+            int logAreaTop = Console.BufferHeight - 11;
+            if (Y >= logAreaTop)
+            {
+                Y = logAreaTop - 1;
+            }
+            
             int xMovement = 0;
             int yMovement = 0;
+            
+            
+            
+            X = Math.Max(0, Math.Min(Console.BufferWidth - 1, X + xMovement));
+            Y = Math.Max(0, Math.Min(logAreaTop - 1, Y + yMovement));
+           
+            
             MovementBias bias = MovementBias.None;
             foreach (var mutation in Mutations)
             {
@@ -81,13 +90,16 @@ namespace CellSim
                         Y = Math.Max(0, Y - 1);
                         break;
                     case MovementBias.South:
-                        Y = Math.Min(Console.BufferHeight - 11, Y + 1);
+                        if (Y == Console.BufferHeight - 11)
+                            Y = 0;
+                        else
+                            Y = Y + 1;
                         break;
                     case MovementBias.East:
-                        X = Math.Max(0, X - 1);
+                        X = Math.Min(Console.BufferWidth - 1, X + 1);
                         break;
                     case MovementBias.West:
-                        X = Math.Min(Console.BufferWidth - 1, X + 1);
+                        X = Math.Max(0, X - 1);
                         break;
                 }
             }
@@ -104,7 +116,7 @@ namespace CellSim
             Y = (Y + yMovement + 100) % 100;
 
             // Add the current position to the trail
-            Trail.Add((X, Y));
+            UpdateTrail();
 
             // Keep the trail at a maximum of 10 positions long
             if (Trail.Count > 40)
@@ -112,36 +124,22 @@ namespace CellSim
                 Trail.RemoveAt(0);
             }
 
-            var bh = Console.BufferHeight - 10;
+            var bh = Console.BufferHeight - 11;
 
             if (bh < 0)
             {
                 bh = 0;
             }
 
-            // Draw the trail
-            foreach (var (x, y) in Trail)
-            {
-                Console.SetCursorPosition(x, (y + bh) % bh);
-                Console.ForegroundColor = CellColor;
-                // console.ForegroundColor = (consoleColor)_random.Next(1, 16);
-                Console.Write(".");
-            }
+            DrawATrail(bh);
 
-            // Clear current cell position
-            Console.SetCursorPosition(X, (Y + bh) % bh);
-            Console.Write(" ");
+            ClearCurrentCellPosition(bh);
+            
             // Add current position to trail
-            Trail.Add((X, Y));
+            UpdateTrail();
 
             // Remove oldest position from trail if it has grown too long
-            if (Trail.Count > 10)
-            {
-                var (x, y) = Trail[0];
-                Console.SetCursorPosition(x, (y + bh) % bh);
-                Console.Write(" ");
-                Trail.RemoveAt(0);
-            }
+            CleanupTrail(bh);
 
             // Draw new cell position
             Console.SetCursorPosition(X, (Y + bh) % bh);
@@ -159,6 +157,41 @@ namespace CellSim
             //log the cell position withthe Log fucntion
             Log(msg, this);
 
+        }
+
+        private void CleanupTrail(int bh)
+        {
+            if (Trail.Count > 10)
+            {
+                var (x, y) = Trail[0];
+                Console.SetCursorPosition(x, (y + bh) % bh);
+                Console.Write(" ");
+                Trail.RemoveAt(0);
+            }
+        }
+
+        private void UpdateTrail()
+        {
+            Trail.Add((X, Y));
+        }
+
+        private void DrawATrail(int bh)
+        {
+            // Draw the trail
+            foreach (var (x, y) in Trail)
+            {
+                Console.SetCursorPosition(x, (y + bh) % bh);
+                Console.ForegroundColor = CellColor;
+                // mutation console.ForegroundColor = (consoleColor)_random.Next(1, 16);
+                Console.Write(".");
+            }
+        }
+
+        private void ClearCurrentCellPosition(int bh)
+        {
+            // Clear current cell position
+            Console.SetCursorPosition(X, (Y + bh) % bh);
+            Console.Write(" ");
         }
 
         private string[] _logMessages = new string[10];
@@ -224,7 +257,7 @@ namespace CellSim
             for (int i = 0; i < 10; i++)
             {
                 // Wrap the row around the console's buffer size
-                int wrappedRow = (Console.BufferHeight - 10 + i) % Console.BufferHeight;
+                int wrappedRow = (Console.BufferHeight - 9 + i) % Console.BufferHeight;
                 Console.SetCursorPosition(0, wrappedRow);
                 Console.Write(_logMessages[i]);
             }
