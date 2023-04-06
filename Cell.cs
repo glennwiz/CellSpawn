@@ -4,15 +4,16 @@ using System.Drawing;
 using System.Linq;
 using System.Threading;
 using CellSim;
+
 namespace CellSim
 {
     public class Cell
     {
-         public static readonly string[] alphabet =
-            {
-                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u",
-                "v", "w", "x", "y", "z"
-            };
+        public static readonly string[] alphabet =
+        {
+            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u",
+            "v", "w", "x", "y", "z"
+        };
 
         private readonly Random _random = new();
 
@@ -61,16 +62,14 @@ namespace CellSim
             {
                 Y = logAreaTop - 1;
             }
-            
+
             int xMovement = 0;
             int yMovement = 0;
-            
-            
-            
-            X = Math.Max(0, Math.Min(Console.BufferWidth - 1, X + xMovement));
-            Y = Math.Max(0, Math.Min(logAreaTop - 1, Y + yMovement));
-           
-            
+
+            // Comment out these lines as they are redundant
+            // X = Math.Max(0, Math.Min(Console.BufferWidth - 1, X + xMovement));
+            // Y = Math.Max(0, Math.Min(logAreaTop - 1, Y + yMovement));
+
             MovementBias bias = MovementBias.None;
             foreach (var mutation in Mutations)
             {
@@ -110,10 +109,17 @@ namespace CellSim
                 yMovement = _random.Next(-1, 2);
             }
 
-            // Wrap around the grid when moving east or west
-            X = (X + xMovement + 100) % 100;
-            // Wrap around the grid when moving north or south
-            Y = (Y + yMovement + 100) % 100;
+            int newX = (X + xMovement) % Console.BufferWidth;
+            int newY = (Y + yMovement) % Console.BufferHeight;
+
+            if (newX < 0)
+                newX += Console.BufferWidth;
+            if (newY < 0)
+                newY += Console.BufferHeight;
+
+            // Update X and Y using the clamped newX and newY values
+            X = Math.Max(0, Math.Min(Console.BufferWidth - 1, newX));
+            Y = Math.Max(0, Math.Min(logAreaTop - 1, newY));
 
             // Add the current position to the trail
             UpdateTrail();
@@ -134,7 +140,7 @@ namespace CellSim
             DrawATrail(bh);
 
             ClearCurrentCellPosition(bh);
-            
+
             // Add current position to trail
             UpdateTrail();
 
@@ -156,7 +162,6 @@ namespace CellSim
                          $"MovementBias: {this.Mutations.Last().MovementBias};";
             //log the cell position withthe Log fucntion
             Log(msg, this);
-
         }
 
         private void CleanupTrail(int bh)
