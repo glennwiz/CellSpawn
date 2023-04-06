@@ -53,7 +53,8 @@ namespace CellSim
                 Console.SetCursorPosition(0, 0);
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.Write($"Number of cells: {cellCounter}");
-
+                
+                List<(int x, int y, int ticks)> explosions = new List<(int x, int y, int ticks)>();
                 // Check for collisions between cells
                 for (int i = 0; i < cells.Count; i++)
                 {
@@ -65,7 +66,8 @@ namespace CellSim
                         {
                             if (cells[i].X == cells[j].X && cells[i].Y == cells[j].Y)
                             {
-                                //clear the dead cell from the screen
+                                explosions.Add((cells[i].X , cells[i].Y , 0));
+                                
                                 ClearTheDeadCollidingCells(cells, i, j);
                                 // Cells have collided, create 4 new cells
                                 for (int k = 0; k < 4; k++)
@@ -78,6 +80,29 @@ namespace CellSim
                                     DrawNewCell(cells, i, newCell);
 
                                     cellCounter++;
+                                }
+
+                                // Oppdater og tegn eksplosjoner
+                                foreach (var (x, y, ticks) in explosions)
+                                {
+                                    // Tegn eksplosjonen
+                                    Console.SetCursorPosition(x, y);
+                                    Console.Write("*");
+
+                                    // Øk antall ticks for denne eksplosjonen
+                                    var ticks1 = ticks;
+                                    ticks1++;
+
+                                    // Hvis eksplosjonen har vart i 10 ticks eller mer
+                                    if (ticks1 >= 10)
+                                    {
+                                        // Fjern eksplosjonen fra listen
+                                        explosions.Remove((x, y, ticks1));
+
+                                        // Slett eksplosjonen fra skjermen
+                                        Console.SetCursorPosition(x, y);
+                                        Console.Write(" ");
+                                    }
                                 }
                                 lastAlphabetPick++;
                             }
@@ -117,8 +142,7 @@ namespace CellSim
             newCell.X = cells[i].X + (int)Math.Round(Math.Cos((k / 10.0) * 2 * Math.PI) * 3);
             // Add 3 to the Y position of the first cell using sine
             newCell.Y = cells[i].Y + (int)Math.Round(Math.Sin((k / 10.0) * 2 * Math.PI) * 3);
-            newCell.Mutations.Add(new Mutation
-            { MovementBias = (MovementBias)_random.Next(1, 5) });
+            newCell.Mutations.Add(new Mutation { MovementBias = (MovementBias)_random.Next(1, 5) });
             newCell.StepsSinceLastCollision = 0;
             newCell.CellColor = (ConsoleColor)_random.Next(1, 16);
             newCell.Age = 0;

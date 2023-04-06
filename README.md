@@ -1,8 +1,15 @@
 # CellSim
 
-![image](https://user-images.githubusercontent.com/195927/209434435-95e9031e-4901-435b-92cf-d7ef1fc998e3.png)
+![image](https://user-images.githubusercontent.com/195927/209436858-5697229b-c9db-417f-a780-be0229fa5851.png)
 
-This is a console application that simulates the behavior of cells in a 2D space. The program creates a list of `Cell` objects and initializes them with random properties such as their form, position, and movement bias. The program then enters an infinite loop, in which it moves each cell randomly and increments their age. 
+TThis C# code is a simulation of cellular automata in which cells move randomly on the console and can mutate. The cells are represented by the `Cell` class, which has the following properties:
+
+- `Id`: a unique identifier for each cell
+- `CellForm`: a string representation of the cell's form, chosen from the alphabet array
+- `X` and `Y`: the x and y coordinates of the cell's position on the console
+- `Mutations`: a list of `Mutation` objects, which contain information about the cell's mutations
+- `CellColor`: the color of the cell as it is displayed on the console
+- `IsAlive`: a boolean value indicating whether the cell is still alive or not
 
 ## Features
 - If a cell's age is greater than 10, it has a 10% chance of mutating.
@@ -10,10 +17,12 @@ This is a console application that simulates the behavior of cells in a 2D space
 - The program checks for collisions between cells and, if two cells collide, it creates 4 new cells and removes the colliding cells from the list. 
 - The program displays the number of cells on the top left corner of the console and clears the console before printing the cells' new positions.
 
-
 ## To-Do List
 
-- [ ] Agro Mutation: Allow cells to hunt and consume other cells to gain energy
+- [ ] Trail mutation: Leaves a diffrent trail, like * - , ¨ \ ` and so on.
+- [ ] Add Energy: cells dont have any enegy atm, so add energy and depletion on movment.
+- [ ] Agro Mutation: Allow cells to hunt and consume other cells to gain energy, should burn more energy when hunting
+- [ ] Runner: Avoid others when energy > 80%
 - [ ] Cell reproduction: Allow cells to reproduce by splitting into two new cells when their age reaches a certain threshold.
 - [ ] Cell fusion: Allow cells to reproduce by fusing with another cell when they collide.
 - [ ] Movement speed mutation: Allow cells to mutate to become faster or slower.
